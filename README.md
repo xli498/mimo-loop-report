@@ -1,66 +1,72 @@
-# MiMo-v2.5-Pro Degenerate Loop: P0 Bug Report
+# MiMo Degenerate Loop Report
 
-**收件人：小米 MiMo 工程团队**
-**日期：2026-05-28 | 模型：xiaomimimo/mimo-v2.5-pro**
+MiMo 模型退化循环问题的完整调查报告。
 
----
+## 问题
 
-## TL;DR
+使用 `xiaomimimo/mimo-v2.5-pro` 模型时，当 `reasoning=True`，模型有约 30% 的概率进入退化循环：
+- 同一段输出重复 8-11 次
+- 持续约 6 分钟
+- 输出语言从中文切换为英文
+- 不执行任何工具调用
 
-严重等级 P0。就是最严重那个。
-
-MiMo-v2.5-Pro 在 Agent 工具调用场景下会**直接死循环**。同一段话重复输出 8 次、6 分钟、逐字一模一样。
-
-所有你能想到的参数——试过了。全部无效。
-
-模型层面就是坏的。
-
----
-
-## 复现
-
-**模型：** xiaomimimo/mimo-v2.5-pro
-**触发概率：** ~30%。每 3 次任务抓一次。不是小概率事件，是大概率事故。
-**场景：** Agent 完成工具调用 → 进入总结阶段 → Boom。
+## 文件结构
 
 ```
-The output seems to show the config was applied successfully... (x8, 6 分钟)
+mimo-loop-report/
+├── README.md                           # 本文档
+├── logs/
+│   └── degenerate_loop_raw.log        # 原始日志（含系统配置和完整时间线）
+├── reproduce/
+│   └── test_loop_reproduce.sh         # 复现脚本（需要 API 密钥）
+└── analysis/
+    └── root_cause_analysis.md         # 根因分析
 ```
 
-## 症状
+## 快速开始
 
-- 逐字复制。Token 级别的完全重复。
-- 全英文输出。无视任何中文 System Prompt。
-- frequency_penalty=1.0？无视。
-- temperature 调高？更糟。
-- 模型不知道自己错了。没有跳出机制。没有 self-awareness。
+### 查看日志
 
-## 根因
+```bash
+cat logs/degenerate_loop_raw.log
+```
 
-不是 prompt 问题。不是配置问题。是**模型推理层的 Bug**。
+日志包含完整的系统配置、模型参数和循环时间线。
 
-英文推理 token 的概率分布塌缩。注意力机制聚焦刚输出的 token，自我强化。就像神经网络给自己打了一针 dopamine，停不下来。
+### 阅读分析
 
-## 试过什么
+```bash
+cat analysis/root_cause_analysis.md
+```
 
-| 手段 | 结果 |
-|------|------|
-| frequency_penalty ↑ | 没用 |
-| temperature 调高 | 更随机 → 更多循环 |
-| 强制中文 System Prompt | 降低频率，没根治 |
-| 上下文压缩 | Bug 在生成层，不在输入层 |
-| 所有参数的排列组合 | 全部无效 |
+分析涵盖：
+- 退化循环的详细特征
+- 语言切换机制分析
+- Token 概率分布塌缩的推测
+- 各修复方案的原理和效果评估
 
-## 期望修复（认真说）
+### 复现（需要 API 密钥）
 
-1. **模型层** — 内置 token 级别重复检测。模型应该知道自己卡住了。
-2. **API 层** — 加 `repetition_detection` 参数。Server 侧兜底。
-3. **API 层** — `stop_reason` 标记 "repetition"。不是所有异常都是 EOS。
+```bash
+export MIMO_API_KEY="your_key_here"
+bash reproduce/test_loop_reproduce.sh --count 10 --timeout 300
+```
 
----
+概率约 30%，需要多次测试才能捕获循环。
 
-这报告不是骂人。是修 Bug 的第一步。你们做得出 V2.5，就能修好这个。
+## 关键发现
 
-## License
+1. **根因**：`reasoning=True` 中的英文推理引擎在特定输入条件下进入固定点收敛
+2. **参数修复无效**：`frequency_penalty`、`temperature`、System Prompt 调整均无效
+3. **工程修复有效**：`timeoutSeconds=180` + `maxTokens=8000` 可在工程侧阻止循环
+4. **行为检测有效**：输出模式检测可提前终止循环
+
+详见 [analysis/root_cause_analysis.md](analysis/root_cause_analysis.md)。
+
+## 工具方案
+
+检测脚本和防护措施参考 [mimo-stable](https://github.com/xli498/mimo-stable) 项目。
+
+## 许可
 
 MIT
