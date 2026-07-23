@@ -4,7 +4,7 @@ MiMo 模型退化循环问题的完整调查报告。
 
 ## 问题
 
-使用 `xiaomimimo/mimo-v2.5-pro` 模型时，当 `reasoning=True`，模型有约 30% 的概率进入退化循环：
+使用 `xiaomimimo/mimo-v2.5-pro` 模型时，当 `reasoning=True`，在有限历史测试中曾观察到退化循环；“约 30%”是该批测试的历史观察值，不应外推为所有版本、提示词或接口的总体概率：
 - 同一段输出重复 8-11 次
 - 持续约 6 分钟
 - 输出语言从中文切换为英文
@@ -56,10 +56,10 @@ bash reproduce/test_loop_reproduce.sh --count 10 --timeout 300
 
 ## 关键发现
 
-1. **根因**：`reasoning=True` 中的英文推理引擎在特定输入条件下进入固定点收敛
+1. **工作假设**：`reasoning=True` 相关路径可能在特定输入条件下出现固定重复；机制尚未得到模型内部证据证实
 2. **参数修复无效**：`frequency_penalty`、`temperature`、System Prompt 调整均无效
 3. **工程修复有效**：`timeoutSeconds=180` + `maxTokens=8000` 可在工程侧阻止循环
-4. **行为检测有效**：输出模式检测可提前终止循环
+4. **行为检测可用**：输出模式检测可提供独立告警；误报率和覆盖范围取决于阈值与样例
 
 详见 [analysis/root_cause_analysis.md](analysis/root_cause_analysis.md)。
 
