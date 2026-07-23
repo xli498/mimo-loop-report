@@ -77,7 +77,7 @@ User Input → Reasoning Engine (English-only) → Output Decoder → Response
 
 2. **语义级重复 vs token 级重复**：模型的重复是语义层面的（输出整个句子的语义模式相同），不是 token 序列的逐字重复。`frequency_penalty` 只能影响 token 级别。
 
-3. **阈值问题**：MiMo 模型在固定点时的概率集中度极高（推测 top-1 token 概率 > 0.9），`frequency_penalty=1.0` 只能将概率降至 ~0.5-0.6，仍远高于其他 token。
+3. **证据边界**：没有 logits 或模型内部遥测，不能量化 token 概率，也不能证明惩罚参数在所有环境中无效。当前只能报告：在该历史配置和任务下，没有观察到稳定改善。
 
 ### temperature 调高无效分析
 
@@ -150,9 +150,9 @@ System Prompt 在固定点状态下被"忽略"，因为：
 
 ## 结论
 
-MiMo 的退化循环是一个模型层面的问题，根因在于 `reasoning=True` 模式下推理引擎在特定输入条件下的固定点收敛。参数级修复（frequency_penalty、temperature、System Prompt）均无效，因为固定点收敛是隐状态层面的问题，不受这些表面参数影响。
+历史日志显示循环与 `reasoning=True` 同时出现；“固定点收敛”是解释该现象的工作假设，不是已证实根因。frequency_penalty、temperature 与 System Prompt 在已记录的配置和任务中没有显示稳定改善，但这不构成跨版本、跨提示词的普遍结论。
 
-有效的修复都在工程侧和行为层：硬性超时、长度限制、输出检测。这些修复不试图改变模型行为，而是在模型出现问题时进行外部干预。
+当前最稳妥的工程结论是：使用硬性超时、长度限制和输出模式检测来限制影响范围。这些措施不依赖对模型内部机制的判断，但仍可能截断正常长任务或漏掉新型循环。
 
 ## 参考
 
