@@ -198,7 +198,7 @@ echo ""
 if [ $LOOP_COUNT -gt 0 ]; then
     echo "⚠️  Degenerate loops detected — see analysis/root_cause_analysis.md for details"
 else
-    echo "No loops detected in this run. Note: loop probability is ~30%,"
-    echo "so multiple runs may be needed. See logs/degenerate_loop_raw.log"
-    echo "for a confirmed loop instance."
+    echo "No loops detected in this run. This result applies only to this run;"
+    echo "it is not a model-wide probability estimate. See logs/degenerate_loop_raw.log"
+    echo "for a recorded instance and keep future results evidence-bounded."
 fi
