@@ -1,9 +1,11 @@
 # Security Policy
 
-## Reporting a vulnerability
+## Reporting a sensitive issue
 
-Do **not** publish credentials, private URLs, or exploit details in a public issue. Report a concise description, affected version or commit, reproduction conditions, and impact through the repository owner's private contact channel.
+Please do not include API keys, access tokens, private prompts, user data, private endpoints, or sensitive payloads in issues or pull requests.
 
-## Scope
+For a sensitive report, contact the repository owner privately through GitHub. Public issue reports should contain only the minimum sanitized reproduction details needed to verify the behavior.
 
-Security reports may include exposed secrets, unsafe command execution, permission bypasses, data disclosure, supply-chain risks, or insecure defaults. Please redact secrets from all reports.
+## Reproduction safety
+
+The reproduction script uses environment variables for credentials. Never commit a real `MIMO_API_KEY` or any other secret. Before publishing logs, remove authorization headers, tokens, private prompts, user data, and sensitive endpoint details.
