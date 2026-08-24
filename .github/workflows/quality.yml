@@ -1,0 +1,26 @@
+name: Quality
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+env:
+  PYTHONUNBUFFERED: "1"
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate reproduction script
+        run: bash -n reproduce/test_loop_reproduce.sh
+      - name: Validate evidence-bounded analysis
+        run: |
+          ! grep -q 'probability is ~30%' reproduce/test_loop_reproduce.sh
+          ! grep -q '30% 的概率' analysis/root_cause_analysis.md
+          grep -q 'Evidence-Bounded Analysis' analysis/root_cause_analysis.md
