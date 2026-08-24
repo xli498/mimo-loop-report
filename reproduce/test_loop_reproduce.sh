@@ -103,6 +103,9 @@ EOF
     
     # Analyze response for signs of loops
     # Extract assistant content blocks
+    # The detector uses non-zero codes for loop and no-output outcomes. Capture
+    # them explicitly so one failed iteration cannot bypass final statistics.
+    set +e
     python3 - "$OUTDIR/test_${i}_response.json" "$DURATION" <<'PYEOF'
 import json, sys, re
 from difflib import SequenceMatcher
@@ -169,6 +172,7 @@ else:
 PYEOF
     
     EXIT_CODE=$?
+    set -e
     case $EXIT_CODE in
         1) LOOP_COUNT=$((LOOP_COUNT + 1)) ;;
         0) NORMAL_COUNT=$((NORMAL_COUNT + 1)) ;;
