@@ -10,6 +10,8 @@ MiMo 模型退化循环问题的完整调查报告。
 - 输出语言从中文切换为英文
 - 不执行任何工具调用
 
+> 术语说明（2026-08 核对）：历史日志中的 `reasoning=True` 指当时 OpenClaw provider 配置里的开关名。小米官方 OpenAI 兼容接口的思考参数是 `thinking.type`（`enabled`/`disabled`），不存在顶层布尔 `reasoning` 字段；`reproduce/test_loop_reproduce.sh` 已按官方参数发送请求，历史观察结论不受此命名修正影响。
+
 ## 文件结构
 
 ```

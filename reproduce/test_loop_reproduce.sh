@@ -2,7 +2,7 @@
 # MiMo Degenerate Loop — Reproduction Script
 #
 # This script attempts to reproduce the degenerate loop behavior
-# with xiaomimimo/mimo-v2.5-pro when reasoning=True.
+# with xiaomimimo/mimo-v2.5-pro when thinking is enabled.
 #
 # Usage:
 #   bash reproduce/test_loop_reproduce.sh [--count N] [--timeout SECONDS]
@@ -10,8 +10,15 @@
 # Options:
 #   --count N       Number of test iterations (default: 5)
 #   --timeout SEC   Timeout per request in seconds (default: 300)
-#   --reasoning     Enable reasoning mode (default: on)
-#   --no-reasoning  Disable reasoning mode
+#   --reasoning     Enable thinking mode (default: on)
+#   --no-reasoning  Disable thinking mode
+#
+# API note (verified 2026-08 against the official Xiaomi MiMo docs):
+#   The OpenAI-compatible chat completions endpoint controls thinking with
+#   "thinking": {"type": "enabled" | "disabled"} — NOT a top-level boolean
+#   "reasoning". Unknown params may be filtered or rejected by the API.
+#   The historical logs say "reasoning=True", which refers to the OpenClaw
+#   provider toggle name at the time, not an API field.
 #
 # Note: This script requires API access to xiaomimimo/mimo-v2.5-pro.
 # Set MIMO_API_KEY and MIMO_API_URL environment variables.
@@ -21,7 +28,7 @@ set -euo pipefail
 # Default configuration
 COUNT=5
 TIMEOUT=300
-REASONING="true"
+REASONING="true"   # maps to thinking.type: enabled / disabled
 API_URL="${MIMO_API_URL:-https://api.xiaomimimo.com/v1}"
 API_KEY="${MIMO_API_KEY:-}"
 
@@ -47,6 +54,13 @@ if [ -z "$API_KEY" ]; then
     exit 1
 fi
 
+# Map the CLI toggle to the official API field value
+if [ "$REASONING" = "true" ]; then
+    THINKING_TYPE="enabled"
+else
+    THINKING_TYPE="disabled"
+fi
+
 # Test prompt (simple system check — same as the original trigger)
 PROMPT="请检查当前系统资源使用情况，包括 CPU、内存、磁盘使用率，并列出占用资源最多的 5 个进程。"
 
@@ -60,7 +74,7 @@ echo "=========================================="
 echo "  MiMo Degenerate Loop Reproduction Test"
 echo "=========================================="
 echo "API:       $API_URL"
-echo "Reasoning: $REASONING"
+echo "Thinking:  $THINKING_TYPE ($REASONING)"
 echo "Count:     $COUNT"
 echo "Timeout:   ${TIMEOUT}s"
 echo "Output:    $OUTDIR"
@@ -87,7 +101,7 @@ for i in $(seq 1 "$COUNT"); do
         {"role": "user", "content": "$PROMPT"}
     ],
     "stream": true,
-    "reasoning": $REASONING,
+    "thinking": {"type": "$THINKING_TYPE"},
     "frequency_penalty": 1.0,
     "temperature": 0.7,
     "max_tokens": 16000
