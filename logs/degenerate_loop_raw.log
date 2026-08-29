@@ -70,9 +70,9 @@ I understand, you need me to check the current system status and report back.
 Let me first check system resource usage, then inspect running processes.
 
 === SESSION TERMINATED (14:29:12) ===
-Reason: timeoutSeconds=180 触发（已在配置中启用）
+Reason: 会话被超时终止（终止记录写 timeoutSeconds=180；头部配置记录为 600。两值不一致，且与时间线——用户消息 14:22:45 至终止 387 秒——均不吻合，无法从日志判定实际生效值；原始记录均保留，2026-08 复核标注）
 Total duration: 6 分 27 秒
-Effective repetitions: 9 次（response 3-11）
+Effective repetitions: 9 次重复（相同英文块共 10 个：response 2-11，2026-08 复核按时间戳重计）
 Time per repetition: ~33 秒
-Output language: 英文（response 3+），无视中文 System Prompt
-Tool calls: 0（response 2 中尝试调用但模型未实际执行）
+Output language: 英文（response 2 起），未持续遵守中文 System Prompt
+Tool calls: 0（response 1 中尝试调用但模型未实际执行）

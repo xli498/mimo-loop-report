@@ -5,7 +5,7 @@ MiMo 模型退化循环问题的完整调查报告。
 ## 问题
 
 使用 `xiaomimimo/mimo-v2.5-pro` 模型时，当 `reasoning=True`，在有限历史测试中曾观察到退化循环；“约 30%”是该批测试的历史观察值，不应外推为所有版本、提示词或接口的总体概率：
-- 同一段输出重复 8-11 次
+- 同一段英文输出连续出现 10 次（首现后重复 9 次）
 - 持续约 6 分钟
 - 输出语言从中文切换为英文
 - 不执行任何工具调用
@@ -17,12 +17,17 @@ MiMo 模型退化循环问题的完整调查报告。
 ```
 mimo-loop-report/
 ├── README.md                           # 本文档
+├── CONTRIBUTING.md / SECURITY.md / LICENSE / .gitignore
 ├── logs/
 │   └── degenerate_loop_raw.log        # 原始日志（含系统配置和完整时间线）
 ├── reproduce/
 │   └── test_loop_reproduce.sh         # 复现脚本（需要 API 密钥）
-└── analysis/
-    └── root_cause_analysis.md         # 根因分析
+├── analysis/
+│   └── root_cause_analysis.md         # 根因分析
+├── docs/
+│   ├── evidence.md                    # 证据分级与边界
+│   └── reproduction-matrix.md         # 复现结果记录矩阵
+└── .github/workflows/                 # CI 质量检查
 ```
 
 ## 快速开始
@@ -54,7 +59,7 @@ export MIMO_API_KEY="your_key_here"
 bash reproduce/test_loop_reproduce.sh --count 10 --timeout 300
 ```
 
-概率约 30%，需要多次测试才能捕获循环。
+历史批次中曾观察到约 30% 的命中比例（见上文边界声明：这是该批测试的历史观察值，不代表当前版本或总体概率），需要多次测试才可能捕获循环。
 
 ## 关键发现
 

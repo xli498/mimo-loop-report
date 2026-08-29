@@ -35,13 +35,27 @@ API_KEY="${MIMO_API_KEY:-}"
 # Parse arguments
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        --count) COUNT="$2"; shift 2 ;;
-        --timeout) TIMEOUT="$2"; shift 2 ;;
+        --count) [ $# -ge 2 ] || { echo "Error: --count requires a value"; exit 1; }; COUNT="$2"; shift 2 ;;
+        --timeout) [ $# -ge 2 ] || { echo "Error: --timeout requires a value"; exit 1; }; TIMEOUT="$2"; shift 2 ;;
         --reasoning) REASONING="true"; shift ;;
         --no-reasoning) REASONING="false"; shift ;;
-        *) echo "Unknown option: $1"; exit 1 ;;
+        -h|--help)
+            sed -n '2,22p' "$0" | sed 's/^# \{0,1\}//'
+            exit 0
+            ;;
+        *) echo "Unknown option: $1"; echo "Run with --help for usage."; exit 1 ;;
     esac
 done
+
+# Validate numeric arguments (guards the loop body and the rate division)
+if ! [[ "$COUNT" =~ ^[1-9][0-9]*$ ]]; then
+    echo "Error: --count must be a positive integer (got: '$COUNT')"
+    exit 1
+fi
+if ! [[ "$TIMEOUT" =~ ^[1-9][0-9]*$ ]]; then
+    echo "Error: --timeout must be a positive integer of seconds (got: '$TIMEOUT')"
+    exit 1
+fi
 
 if [ -z "$API_KEY" ]; then
     echo "Error: MIMO_API_KEY environment variable not set"
@@ -204,7 +218,7 @@ echo "  Total:      $COUNT"
 echo "  Normal:     $NORMAL_COUNT"
 echo "  Loops:      $LOOP_COUNT"
 echo "  Errors:     $ERROR_COUNT"
-echo "  Loop rate:  $(( LOOP_COUNT * 100 / (LOOP_COUNT + NORMAL_COUNT + (ERROR_COUNT > 0 ? ERROR_COUNT : 0)) ))%"
+echo "  Loop rate:  $(( LOOP_COUNT * 100 / COUNT ))%"
 echo ""
 echo "  Output saved to: $OUTDIR"
 echo ""
