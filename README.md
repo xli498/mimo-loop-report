@@ -1,7 +1,5 @@
 # MiMo Degenerate Loop Report
 
-> **已停更，仅作历史参考/展示。**
-
 MiMo 模型退化循环问题的完整调查报告。
 
 ## 问题
